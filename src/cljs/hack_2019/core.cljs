@@ -123,10 +123,11 @@
 
 
 (defn get-job-cost-series [inst-type inst-count hours]
-  (let [inst-conf (get-instance-conf inst-type)
-        inst-price (:price inst-conf)]
-    (for [h (range 0 hours 1)]
-      (* inst-price inst-count h))))
+  (if (or (nil? inst-type) (nil? inst-count) (nil? hours)) nil
+      (let [inst-conf (get-instance-conf inst-type)
+            inst-price (:price inst-conf)]
+        (for [h (range 0 (inc hours) 1)]
+          (* inst-price inst-count h)))))
 
 
 (defn get-well-planned-series [job-conf]
@@ -150,10 +151,13 @@
                          well-planned-series (for [item well-planned-data]
                                                {:name (:repr item)
                                                 :data (:series item)})
-                         chart-conf (clj->js {
-                                              :title {:text "Time/Cost"}
-                                              :yAxis {:title "Cost"}
-                                              :xAxis {:title "Hours"}
+                         chart-conf (clj->js {:title {:text "Time/Cost"}
+                                              :yAxis {:title "Cost"
+                                                      :labels {:format "{value}$"}}
+                                              :xAxis {:title "Hours"
+                                                      :labels {:format "{value}h"}}
+                                              :tooltip {:headerFormat ""
+                                                        :pointFormat "{point.x:.1f}h {point.y:.1f}$"}
                                               :legend {:layout "vertical"
                                                        :align "right"
                                                        :verticalAlign "middle"}
@@ -164,8 +168,8 @@
                                                                :dashStyle "Dash"
                                                                :name "Your Cluster"
                                                                :data your-data}))})]
-                     (js/console.log chart-conf)
-                     (js/Highcharts.chart "time-cost-chart" chart-conf)))]
+                     (if (not (nil? your-data))
+                       (js/Highcharts.chart "time-cost-chart" chart-conf))))]
     (reagent/create-class
      {:display-name "highchart"
       :component-did-mount draw-highchart
@@ -173,8 +177,7 @@
       :reagent-render
       (fn [id data]
         [:div#time-cost-chart
-         {:style {:width "600px", :height "400px"}}
-         "Time/Cost Chart"])})))
+         {:style {:width "600px", :height "400px"}}])})))
 
 
 (defn home-page []

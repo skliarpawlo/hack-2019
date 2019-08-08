@@ -27,5 +27,6 @@
 
 
 (def well-planned-jobs [{:repr "Video Loader" :type "i3.2xlarge" :count 32 :hours 2}
-                        {:repr "Daily Trends Merge" :type "i3.2xlarge" :count 8 :hours 0.5}
-                        {:repr "Youtube Activities Merge" :type "i3.2xlarge" :count 4 :hours 3}])
+                        {:repr "Daily Trends Merge" :type "i3.2xlarge" :count 8 :hours 1}
+                        {:repr "Youtube Activities Merge" :type "i3.2xlarge" :count 4 :hours 3}
+                        {:repr "Creator Intelligence Loader" :type "i3.xlarge" :count 15 :hours 2}])
