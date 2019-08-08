@@ -17,7 +17,8 @@
                  [metosin/reitit "0.3.7"]
                  [pez/clerk "1.0.0"]
                  [venantius/accountant "0.2.4"
-                  :exclusions [org.clojure/tools.reader]]]
+                  :exclusions [org.clojure/tools.reader]]
+                 [cljsjs/highcharts "7.0.3-0"]]
 
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.7"]
@@ -63,9 +64,6 @@
               :source-map true
               :optimizations :none
               :pretty-print  true}}
-
-
-
             }
    }
 
@@ -73,8 +71,7 @@
   {:http-server-root "public"
    :server-port 3449
    :nrepl-port 7002
-   :nrepl-middleware [cider.piggieback/wrap-cljs-repl
-                      ]
+   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]
    :css-dirs ["resources/public/css"]
    :ring-handler hack-2019.handler/app}
 
@@ -88,13 +85,10 @@
                                   [prone "1.6.3"]
                                   [figwheel-sidecar "0.5.18"]
                                   [nrepl "0.6.0"]
-                                  [pjstadig/humane-test-output "0.9.0"]
-                                  
- ]
+                                  [pjstadig/humane-test-output "0.9.0"]]
 
                    :source-paths ["env/dev/clj"]
-                   :plugins [[lein-figwheel "0.5.18"]
-]
+                   :plugins [[lein-figwheel "0.5.18"]]
 
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]

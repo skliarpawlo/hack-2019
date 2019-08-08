@@ -4,60 +4,188 @@
    [reagent.session :as session]
    [reitit.frontend :as reitit]
    [clerk.core :as clerk]
-   [accountant.core :as accountant]))
+   [accountant.core :as accountant]
+   [hack-2019.data :refer [ec2 well-planned-jobs]]
+   [cljsjs.highcharts]))
 
 ;; -------------------------
 ;; Routes
 
 (def router
   (reitit/router
-   [["/" :index]
-    ["/items"
-     ["" :items]
-     ["/:item-id" :item]]
-    ["/about" :about]]))
+   [["/" :index]]))
 
 (defn path-for [route & [params]]
   (if params
     (:path (reitit/match-by-name router route params))
     (:path (reitit/match-by-name router route))))
 
-(path-for :about)
 ;; -------------------------
 ;; Page components
+(defonce state (reagent/atom
+                {:instance-type nil
+                 :instance-count nil
+                 :hours nil}))
+
+(defn select-instance-type [id]
+  (reagent/create-class
+   {:component-did-mount
+    (fn [this]
+      (let [dropdown (-> (js/$ (str "#" id))
+                         .dropdown)]
+        (.on dropdown "change" (fn [e]
+                                 (swap! state
+                                        assoc
+                                        :instance-type
+                                        (-> e .-target .-value))))))
+    :reagent-render
+    (fn [id]
+      [:div.ui.selection.dropdown.fluid {:id id}
+       [:input {:type "hidden" :name "instance-type"}]
+       [:i.dropdown.icon]
+       (if (nil? (:instance-type @state))
+         [:div.default.text "Instance Type"]
+         [:div.text (:instance-type @state)])
+       [:div.menu
+        (doall
+         (for [inst ec2]
+           [:div.item
+            {:key (:type inst)
+             :data-value (:type inst)
+             :class (if (= (:type inst) (:instance-type @state)) "active selected")}
+            (:repr inst)]))]])}))
+
+
+(defn select-instance-count [id]
+  (reagent/create-class
+   {:component-did-mount
+    (fn [this]
+      (let [dropdown (-> (js/$ (str "#" id))
+                         .dropdown)]
+        (.on dropdown "change" (fn [e]
+                                 (swap! state
+                                        assoc
+                                        :instance-count
+                                        (-> e .-target .-value int))))))
+
+    :reagent-render
+    (fn [id]
+      [:div.ui.selection.dropdown {:id id}
+       [:input {:type "hidden" :name "instance-count"}]
+       [:i.dropdown.icon]
+       (if (nil? (:instance-count @state))
+         [:div.default.text "Instance Count"]
+         [:div.text "x"(:instance-count @state)])
+       [:div.menu
+        (doall
+         (for [i (range 1 50)]
+           [:div.item
+            {:key i
+             :data-value i
+             :class (if (= i (:instance-count @state)) "active selected")}
+            "x" i]))]])}))
+
+
+(defn select-hours [id]
+  (reagent/create-class
+   {:component-did-mount
+    (fn [this]
+      (let [dropdown (-> (js/$ (str "#" id))
+                         .dropdown)]
+        (.on dropdown "change" (fn [e]
+                                 (swap! state
+                                        assoc
+                                        :hours
+                                        (-> e .-target .-value int))))))
+
+    :reagent-render
+    (fn [id]
+      [:div.ui.selection.dropdown {:id id}
+       [:input {:type "hidden" :name "instance-count"}]
+       [:i.dropdown.icon]
+       (if (nil? (:hours @state))
+         [:div.default.text "Hours to work"]
+         [:div.text (:hours @state) "h"])
+       [:div.menu
+        (doall
+         (for [i (range 1 24)]
+           [:div.item
+            {:key i
+             :data-value i
+             :class (if (= i (:instance-count @state)) "active selected")}
+            i "h"]))]])}))
+
+
+(defn get-instance-conf [instance-type]
+  (->> ec2
+       (filter #(-> % :type (= instance-type)))
+       first))
+
+
+(defn get-job-cost-series [inst-type inst-count hours]
+  (let [inst-conf (get-instance-conf inst-type)
+        inst-price (:price inst-conf)]
+    (for [h (range 0 hours 1)]
+      (* inst-price inst-count h))))
+
+
+(defn get-well-planned-series [job-conf]
+  (let [instance-type (job-conf :type)
+        instance-count (job-conf :count)
+        hours (job-conf :hours)]
+    (get-job-cost-series instance-type instance-count hours)))
+
+
+(defn time-cost-chart [id atom]
+  (let [draw-highchart
+        (fn [this] (let [your-data (get-job-cost-series
+                                    (:instance-type @state)
+                                    (:instance-count @state)
+                                    (:hours @state))
+                         well-planned-data (map
+                                            (fn [item] (assoc item
+                                                              :series
+                                                              (get-well-planned-series item)))
+                                            well-planned-jobs)
+                         well-planned-series (for [item well-planned-data]
+                                               {:name (:repr item)
+                                                :data (:series item)})
+                         chart-conf (clj->js {
+                                              :title {:text "Time/Cost"}
+                                              :yAxis {:title "Cost"}
+                                              :xAxis {:title "Hours"}
+                                              :legend {:layout "vertical"
+                                                       :align "right"
+                                                       :verticalAlign "middle"}
+                                              :series (if (zero? (count your-data))
+                                                        well-planned-series
+                                                        (conj well-planned-series
+                                                              {:color "red"
+                                                               :dashStyle "Dash"
+                                                               :name "Your Cluster"
+                                                               :data your-data}))})]
+                     (js/console.log chart-conf)
+                     (js/Highcharts.chart "time-cost-chart" chart-conf)))]
+    (reagent/create-class
+     {:display-name "highchart"
+      :component-did-mount draw-highchart
+      :component-did-update draw-highchart
+      :reagent-render
+      (fn [id data]
+        [:div#time-cost-chart
+         {:style {:width "600px", :height "400px"}}
+         "Time/Cost Chart"])})))
+
 
 (defn home-page []
   (fn []
     [:span.main
-     [:h1 "Welcome to hack-2019"]
-     [:ul
-      [:li [:a {:href (path-for :items)} "Items of hack-2019"]]
-      [:li [:a {:href "/broken/link"} "Broken link"]]]]))
+     [:h1 "What kind of cluster do I need?"]
+     [select-instance-type "instance-type"]
+     [select-instance-count "instance-count"]
+     [select-hours "hours"]
+     [time-cost-chart "time-cost-chart" @state]]))
 
-
-
-(defn items-page []
-  (fn []
-    [:span.main
-     [:h1 "The items of hack-2019"]
-     [:ul (map (fn [item-id]
-                 [:li {:name (str "item-" item-id) :key (str "item-" item-id)}
-                  [:a {:href (path-for :item {:item-id item-id})} "Item: " item-id]])
-               (range 1 60))]]))
-
-
-(defn item-page []
-  (fn []
-    (let [routing-data (session/get :route)
-          item (get-in routing-data [:route-params :item-id])]
-      [:span.main
-       [:h1 (str "Item " item " of hack-2019")]
-       [:p [:a {:href (path-for :items)} "Back to the list of items"]]])))
-
-
-(defn about-page []
-  (fn [] [:span.main
-          [:h1 "About hack-2019"]]))
 
 
 ;; -------------------------
@@ -65,10 +193,7 @@
 
 (defn page-for [route]
   (case route
-    :index #'home-page
-    :about #'about-page
-    :items #'items-page
-    :item #'item-page))
+    :index #'home-page))
 
 
 ;; -------------------------
@@ -78,13 +203,7 @@
   (fn []
     (let [page (:current-page (session/get :route))]
       [:div
-       [:header
-        [:p [:a {:href (path-for :index)} "Home"] " | "
-         [:a {:href (path-for :about)} "About hack-2019"]]]
-       [page]
-       [:footer
-        [:p "hack-2019 was generated by the "
-         [:a {:href "https://github.com/reagent-project/reagent-template"} "Reagent Template"] "."]]])))
+       [page]])))
 
 ;; -------------------------
 ;; Initialize app

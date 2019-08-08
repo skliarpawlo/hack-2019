@@ -16,7 +16,11 @@
    [:meta {:charset "utf-8"}]
    [:meta {:name "viewport"
            :content "width=device-width, initial-scale=1"}]
-   (include-css (if (env :dev) "/css/site.css" "/css/site.min.css"))])
+   (include-css (if (env :dev) "/css/site.css" "/css/site.min.css"))
+   (include-css "/semantic-ui-css/semantic.min.css")
+   (include-js "https://code.jquery.com/jquery-3.1.1.min.js")
+   (include-js "/semantic-ui-css/semantic.min.js")
+   ])
 
 (defn loading-page []
   (html5
@@ -24,7 +28,6 @@
    [:body {:class "body-container"}
     mount-target
     (include-js "/js/app.js")]))
-
 
 (defn index-handler
   [_request]
@@ -35,12 +38,7 @@
 (def app
   (reitit-ring/ring-handler
    (reitit-ring/router
-    [["/" {:get {:handler index-handler}}]
-     ["/items"
-      ["" {:get {:handler index-handler}}]
-      ["/:item-id" {:get {:handler index-handler
-                          :parameters {:path {:item-id int?}}}}]]
-     ["/about" {:get {:handler index-handler}}]])
+    [["/" {:get {:handler index-handler}}]])
    (reitit-ring/routes
     (reitit-ring/create-resource-handler {:path "/" :root "/public"})
     (reitit-ring/create-default-handler))
