@@ -233,6 +233,23 @@
          {:style {:width "600px", :height "400px"}}])})))
 
 
+(defn michael-the-pirate [id atom]
+  (let [cluster-price-series (get-job-cost-series
+                              (:instance-type @state)
+                              (:instance-count @state)
+                              (:hours @state))
+        cluster-price (last cluster-price-series)]
+    (if (and (not (nil? cluster-price))
+             (> cluster-price 100))
+      [:img {:style {:position "fixed"
+                     :opacity (/ (- cluster-price 100) 200)
+                     :left 0
+                     :bottom 0}
+             :src "/img/michael pirate.png"
+             :width "300px"
+             :height "300px"}])))
+
+
 (defn home-page []
   (fn []
     [:span.main
@@ -241,7 +258,8 @@
      [select-instance-count "instance-count"]
      [select-hours "hours"]
      [ram-chart "disk-chart" @state]
-     [time-cost-chart "time-cost-chart" @state]]))
+     [time-cost-chart "time-cost-chart" @state]
+     [michael-the-pirate "michael-the-pirate" @state]]))
 
 
 
