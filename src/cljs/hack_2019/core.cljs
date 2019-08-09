@@ -245,11 +245,12 @@
       :reagent-render
       (fn [id data]
         [:div
-         [:div.ui.toggle.checkbox
-          [:input {:type "checkbox"
-                   :checked @per-cpu-checkbox
-                   :on-change (fn [e] (swap! per-cpu-checkbox #(not @per-cpu-checkbox)))}]
-          [:label "Per CPU"]]
+         (if (not (nil? (@state :instance-count)))
+           [:div.ui.toggle.checkbox
+            [:input {:type "checkbox"
+                     :checked @per-cpu-checkbox
+                     :on-change (fn [e] (swap! per-cpu-checkbox #(not @per-cpu-checkbox)))}]
+            [:label "Per CPU"]])
          [:div#ram-chart
           {:style {:width "600px", :height "400px"}}]])})))
 
