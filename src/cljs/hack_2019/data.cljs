@@ -30,3 +30,9 @@
                         {:repr "Daily Trends Merge" :type "i3.2xlarge" :count 8 :hours 1}
                         {:repr "Youtube Activities Merge" :type "i3.2xlarge" :count 4 :hours 3}
                         {:repr "Creator Intelligence Loader" :type "i3.xlarge" :count 15 :hours 2}])
+
+
+(def datasets [{:repr "VI" :size-gb 2129}
+               {:repr "Youtube Video updates 7 days" :size-gb 434}
+               {:repr "Activities 90 days" :size-gb 230}
+               {:repr "CI" :size-gb 64}])

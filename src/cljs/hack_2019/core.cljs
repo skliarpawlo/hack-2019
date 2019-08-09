@@ -5,7 +5,7 @@
    [reitit.frontend :as reitit]
    [clerk.core :as clerk]
    [accountant.core :as accountant]
-   [hack-2019.data :refer [ec2 well-planned-jobs]]
+   [hack-2019.data :refer [ec2 well-planned-jobs datasets]]
    [cljsjs.highcharts]))
 
 ;; -------------------------
@@ -151,7 +151,7 @@
                          well-planned-series (for [item well-planned-data]
                                                {:name (:repr item)
                                                 :data (:series item)})
-                         chart-conf (clj->js {:title {:text "Time/Cost"}
+                         chart-conf (clj->js {:title {:text "Time & Cost"}
                                               :yAxis {:title "Cost"
                                                       :labels {:format "{value}$"}}
                                               :xAxis {:title "Hours"
@@ -180,6 +180,59 @@
          {:style {:width "600px", :height "400px"}}])})))
 
 
+(defn get-disk [inst-type inst-count]
+  (if (or (nil? inst-type)
+          (nil? inst-count))
+    nil
+    (let [inst-conf (get-instance-conf inst-type)]
+      (* (inst-conf :disk) inst-count))))
+
+
+(defn get-ram [inst-type inst-count]
+  (if (or (nil? inst-type)
+          (nil? inst-count))
+    nil
+    (let [inst-conf (get-instance-conf inst-type)]
+      (* (inst-conf :ram) inst-count))))
+
+
+(defn ram-chart [id atom]
+  (let [draw-highchart
+        (fn [this] (let [your-ram {:color "#F5BC42"
+                                   :y (get-ram (@state :instance-type)
+                                               (@state :instance-count))
+                                   :repr "Your Cluster (RAM)"}
+                         your-disk {:color "#42f596"
+                                    :y (get-disk (@state :instance-type)
+                                                 (@state :instance-count))
+                                    :repr "Your Cluster (Disk)"}
+                         datasets-data (conj (for [dataset datasets]
+                                               {:color "#4287F5"
+                                                :y (dataset :size-gb)
+                                                :repr (dataset :repr)})
+                                             your-ram your-disk)
+                         data-sorted (sort-by :y datasets-data)
+                         chart-conf (clj->js {:title {:text "Ram & Disk"}
+                                              :chart {:type "bar"}
+                                              :tooltip {:enabled false}
+                                              :plotOptions {:bar {:dataLabels {:enabled true
+                                                                               :format "{point.y:,.1f} Gb"}}}
+                                              :yAxis {:title "" :labels {:format "{value} Gb"}}
+                                              :legend {:enabled false}
+                                              :xAxis {:categories (for [elem data-sorted] (elem :repr))}
+                                              :series [{:data data-sorted}]})]
+                     (if (not (nil? (your-ram :y)))
+                       (js/Highcharts.chart "ram-chart" chart-conf))))]
+    (reagent/create-class
+     {:display-name "highchart"
+      :component-did-mount draw-highchart
+      :component-did-update draw-highchart
+      :reagent-render
+      (fn [id data]
+        [:div#ram-chart
+         {:style {:width "600px", :height "400px"}}])})))
+
+
 (defn home-page []
   (fn []
     [:span.main
@@ -187,6 +240,7 @@
      [select-instance-type "instance-type"]
      [select-instance-count "instance-count"]
      [select-hours "hours"]
+     [ram-chart "disk-chart" @state]
      [time-cost-chart "time-cost-chart" @state]]))
 
 
