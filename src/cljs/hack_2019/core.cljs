@@ -149,7 +149,7 @@
                                                               (get-well-planned-series item)))
                                             well-planned-jobs)
                          well-planned-series (for [item well-planned-data]
-                                               {:name (:repr item)
+                                               {:name (str (:repr item) " (" (item :count) " x " (item :type) ")")
                                                 :data (:series item)})
                          chart-conf (clj->js {:title {:text "Time & Cost"}
                                               :yAxis {:title "Cost"
@@ -279,7 +279,11 @@
                               (:hours @state))
         cluster-price (last cluster-price-series)]
     (if (not (nil? cluster-price))
-      [:a {:href "http://som-jenkins.tubularlabs.net/job/spark-on-mesos-engineers-start-spark-cluster/parambuild/?delay=0sec&TERMINATE_IN=720&PROJECT_NAME=pavlo-is-awesome&EXECUTOR_INSTANCE_COUNT=100000" :target "_blank"}
+      [:a {:href (str "http://som-jenkins.tubularlabs.net/job/"
+                      "spark-on-mesos-engineers-start-spark-cluster/parambuild/"
+                      "?delay=0sec&TERMINATE_IN=720&PROJECT_NAME=pavlo-is-awesome&"
+                      "EXECUTOR_INSTANCE_COUNT=100000")
+           :target "_blank"}
        [:div.ui.animated.fade.button.large.red
         [:div.visible.content "Run Cluster"]
         [:div.hidden.content "Spend $" (.toFixed cluster-price 2)]]])))
