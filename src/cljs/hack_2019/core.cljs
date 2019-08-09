@@ -196,9 +196,20 @@
       (* (inst-conf :ram) inst-count))))
 
 
-(defn ram-chart [id atom]
-  (let [draw-highchart
-        (fn [this] (let [your-ram {:color "#F5BC42"
+(defn get-cpu [inst-type inst-count]
+  (if (or (nil? inst-type)
+          (nil? inst-count))
+    nil
+    (let [inst-conf (get-instance-conf inst-type)]
+      (* (inst-conf :cpu) inst-count))))
+
+
+(defn ram-disk-chart [id atom]
+  (let [per-cpu-checkbox (reagent/atom false)
+        draw-highchart
+        (fn [this] (let [your-cpu (get-cpu (@state :instance-type)
+                                           (@state :instance-count))
+                         your-ram {:color "#F5BC42"
                                    :y (get-ram (@state :instance-type)
                                                (@state :instance-count))
                                    :repr "Your Cluster (RAM)"}
@@ -212,6 +223,9 @@
                                                 :repr (dataset :repr)})
                                              your-ram your-disk)
                          data-sorted (sort-by :y datasets-data)
+                         data-prepared (if (true? @per-cpu-checkbox)
+                                         (map (fn [item] (update item :y / your-cpu)) data-sorted)
+                                         data-sorted)
                          chart-conf (clj->js {:title {:text "Ram & Disk"}
                                               :chart {:type "bar"}
                                               :tooltip {:enabled false}
@@ -219,18 +233,25 @@
                                                                                :format "{point.y:,.1f} Gb"}}}
                                               :yAxis {:title "" :labels {:format "{value} Gb"}}
                                               :legend {:enabled false}
-                                              :xAxis {:categories (for [elem data-sorted] (elem :repr))}
-                                              :series [{:data data-sorted}]})]
+                                              :xAxis {:categories (for [elem data-prepared] (elem :repr))}
+                                              :series [{:data data-prepared}]})]
                      (if (not (nil? (your-ram :y)))
                        (js/Highcharts.chart "ram-chart" chart-conf))))]
+
     (reagent/create-class
      {:display-name "highchart"
       :component-did-mount draw-highchart
       :component-did-update draw-highchart
       :reagent-render
       (fn [id data]
-        [:div#ram-chart
-         {:style {:width "600px", :height "400px"}}])})))
+        [:div
+         [:div.ui.toggle.checkbox
+          [:input {:type "checkbox"
+                   :checked @per-cpu-checkbox
+                   :on-change (fn [e] (swap! per-cpu-checkbox #(not @per-cpu-checkbox)))}]
+          [:label "Per CPU"]]
+         [:div#ram-chart
+          {:style {:width "600px", :height "400px"}}]])})))
 
 
 (defn michael-the-pirate [id atom]
@@ -271,7 +292,7 @@
      [select-instance-count "instance-count"]
      [select-hours "hours"]
      [create-cluster-button "create-cluster-button" @state]
-     [ram-chart "disk-chart" @state]
+     [ram-disk-chart "disk-chart" @state]
      [time-cost-chart "time-cost-chart" @state]
      [michael-the-pirate "michael-the-pirate" @state]]))
 
