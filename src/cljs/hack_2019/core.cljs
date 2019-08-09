@@ -281,8 +281,8 @@
     (if (not (nil? cluster-price))
       [:a {:href (str "http://som-jenkins.tubularlabs.net/job/"
                       "spark-on-mesos-engineers-start-spark-cluster/parambuild/"
-                      "?delay=0sec&TERMINATE_IN=720&PROJECT_NAME=pavlo-is-awesome&"
-                      "EXECUTOR_INSTANCE_COUNT=100000")
+                      "?delay=0sec&TERMINATE_IN=240&PROJECT_NAME=pavlo-is-awesome&"
+                      "EXECUTOR_INSTANCE_COUNT=1")
            :target "_blank"}
        [:div.ui.animated.fade.button.large.red
         [:div.visible.content "Run Cluster"]

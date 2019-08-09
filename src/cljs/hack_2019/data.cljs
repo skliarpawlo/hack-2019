@@ -1,7 +1,6 @@
 (ns hack-2019.data)
 
-(def ec2 [{:repr "i3.2xlarge | 60Gb memory, 8 cores, 1900Gb disk, $0.624 hourly"
-           :type "i3.2xlarge", :ram 60, :cpu 8, :disk 1900, :price 0.624}
+(def ec2 [
           {:repr "m3.xlarge | 15Gb memory, 4 cores, 80Gb disk, $0.266 hourly"
            :type "m3.xlarge", :ram 15, :cpu 4, :disk 80, :price 0.266}
           {:repr "m3.2xlarge | 30Gb memory, 8 cores, 160Gb disk, $0.532 hourly"
@@ -23,7 +22,14 @@
           {:repr "i2.2xlarge | 60Gb memory, 8 cores, 1600Gb disk, $1.705 hourly"
            :type "i2.2xlarge", :ram 60, :cpu 8, :disk 1600, :price 1.705}
           {:repr "i3.xlarge | 30Gb memory, 4 cores, 950Gb disk, $0.312 hourly"
-           :type "i3.xlarge", :ram 30, :cpu 4, :disk 950, :price 0.312}])
+           :type "i3.xlarge", :ram 30, :cpu 4, :disk 950, :price 0.312}
+          {:repr "i3.2xlarge | 60Gb memory, 8 cores, 1900Gb disk, $0.624 hourly"
+           :type "i3.2xlarge", :ram 60, :cpu 8, :disk 1900, :price 0.624}
+          {:repr "i3.16xlarge | 488Gb memory, 64 cores, 15200Gb disk, $4.992 hourly"
+           :type "i3.16xlarge", :ram 488, :cpu 64, :disk 15200, :price 4.992}
+          {:repr "h1.8xlarge | 128Gb memory, 32 cores, 8000Gb disk, $1.872 hourly"
+           :type "h1.8xlarge", :ram 128, :cpu 32, :disk 8000, :price 1.872}
+          ])
 
 
 (def well-planned-jobs [{:repr "Video Loader" :type "i3.2xlarge" :count 32 :hours 2}
