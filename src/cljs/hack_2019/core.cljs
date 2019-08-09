@@ -257,9 +257,10 @@
                               (:hours @state))
         cluster-price (last cluster-price-series)]
     (if (not (nil? cluster-price))
-      [:div.ui.animated.fade.button.large.red
-       [:div.visible.content "Run Cluster"]
-       [:div.hidden.content "Spend $" (.toFixed cluster-price 2)]])))
+      [:a {:href "http://som-jenkins.tubularlabs.net/job/spark-on-mesos-engineers-start-spark-cluster/parambuild/?delay=0sec&TERMINATE_IN=720&PROJECT_NAME=pavlo-is-awesome&EXECUTOR_INSTANCE_COUNT=100000" :target "_blank"}
+       [:div.ui.animated.fade.button.large.red
+        [:div.visible.content "Run Cluster"]
+        [:div.hidden.content "Spend $" (.toFixed cluster-price 2)]]])))
 
 
 (defn home-page []
