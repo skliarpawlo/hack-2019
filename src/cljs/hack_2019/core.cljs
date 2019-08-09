@@ -250,6 +250,18 @@
              :height "300px"}])))
 
 
+(defn create-cluster-button [id atom]
+  (let [cluster-price-series (get-job-cost-series
+                              (:instance-type @state)
+                              (:instance-count @state)
+                              (:hours @state))
+        cluster-price (last cluster-price-series)]
+    (if (not (nil? cluster-price))
+      [:div.ui.animated.fade.button.large.red
+       [:div.visible.content "Run Cluster"]
+       [:div.hidden.content "Spend $" (.toFixed cluster-price 2)]])))
+
+
 (defn home-page []
   (fn []
     [:span.main
@@ -257,6 +269,7 @@
      [select-instance-type "instance-type"]
      [select-instance-count "instance-count"]
      [select-hours "hours"]
+     [create-cluster-button "create-cluster-button" @state]
      [ram-chart "disk-chart" @state]
      [time-cost-chart "time-cost-chart" @state]
      [michael-the-pirate "michael-the-pirate" @state]]))
